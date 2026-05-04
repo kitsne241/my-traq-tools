@@ -3,18 +3,18 @@ package qchannels
 import (
 	"context"
 
-	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 type QChannels struct {
-	bot           *traqwsbot.Bot
+	bot           *wsbot.Bot
 	idTree        map[string]string
 	channelPathID map[string]string
 	channelIDPath map[string]string
 }
 
 // 引数の Bot をもとにインスタンスを生成
-func New(bot *traqwsbot.Bot) (*QChannels, error) {
+func New(bot *wsbot.Bot) (*QChannels, error) {
 	q := &QChannels{bot: bot}
 	err := q.Refresh()
 	if err != nil {

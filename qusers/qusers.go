@@ -3,17 +3,17 @@ package qusers
 import (
 	"context"
 
-	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 type QUsers struct {
-	bot        *traqwsbot.Bot
+	bot        *wsbot.Bot
 	userNameID map[string]string
 	userIDName map[string]string
 }
 
 // 引数の Bot をもとにインスタンスを生成
-func New(bot *traqwsbot.Bot) (*QUsers, error) {
+func New(bot *wsbot.Bot) (*QUsers, error) {
 	q := &QUsers{bot: bot}
 	err := q.Refresh()
 	if err != nil {

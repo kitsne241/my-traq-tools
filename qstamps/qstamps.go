@@ -5,17 +5,17 @@ import (
 	"fmt"
 
 	traq "github.com/traPtitech/go-traq"
-	traqwsbot "github.com/traPtitech/traq-ws-bot"
+	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 type QStamps struct {
-	bot         *traqwsbot.Bot
+	bot         *wsbot.Bot
 	stampNameID map[string]string
 	stampIDName map[string]string
 }
 
 // 引数の Bot をもとにインスタンスを生成
-func New(bot *traqwsbot.Bot) (*QStamps, error) {
+func New(bot *wsbot.Bot) (*QStamps, error) {
 	q := &QStamps{bot: bot}
 	err := q.Refresh()
 	if err != nil {
