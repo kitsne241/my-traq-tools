@@ -13,14 +13,17 @@ type QUsers struct {
 }
 
 // 引数の Bot をもとにインスタンスを生成
-func New(bot *traqwsbot.Bot, use []string) *QUsers {
+func New(bot *traqwsbot.Bot) (*QUsers, error) {
 	q := &QUsers{bot: bot}
-	q.RefreshBimap()
-	return q
+	err := q.Refresh()
+	if err != nil {
+		return nil, err
+	}
+	return q, nil
 }
 
 // traQ の直近の全ユーザーの Display ID と ID の対応表を取得
-func (q *QUsers) RefreshBimap() error {
+func (q *QUsers) Refresh() error {
 	users, _, err := q.bot.API().UserAPI.GetUsers(context.Background()).IncludeSuspended(true).Execute()
 	if err != nil {
 		return err
@@ -41,21 +44,13 @@ func (q *QUsers) RefreshBimap() error {
 }
 
 // 引数の Display ID をもつユーザーの ID を取得
-func (q *QUsers) GetUserID(name string) *string {
-	userID, exists := q.userNameID[name]
-	if exists {
-		return &userID
-	} else {
-		return nil
-	}
+func (q *QUsers) GetUserID(name string) (string, bool) {
+	userID, ok := q.userNameID[name]
+	return userID, ok
 }
 
 // 引数の ID をもつユーザーの Display ID を取得
-func (q *QUsers) GetUserName(id string) *string {
-	userName, exists := q.userIDName[id]
-	if exists {
-		return &userName
-	} else {
-		return nil
-	}
+func (q *QUsers) GetUserName(id string) (string, bool) {
+	userName, ok := q.userIDName[id]
+	return userName, ok
 }

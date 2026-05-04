@@ -2,6 +2,7 @@ package qstamps
 
 import (
 	"context"
+	"fmt"
 
 	traq "github.com/traPtitech/go-traq"
 	traqwsbot "github.com/traPtitech/traq-ws-bot"
@@ -14,14 +15,17 @@ type QStamps struct {
 }
 
 // 引数の Bot をもとにインスタンスを生成
-func New(bot *traqwsbot.Bot, use []string) *QStamps {
+func New(bot *traqwsbot.Bot) (*QStamps, error) {
 	q := &QStamps{bot: bot}
-	q.RefreshBimap()
-	return q
+	err := q.Refresh()
+	if err != nil {
+		return nil, err
+	}
+	return q, nil
 }
 
 // traQ の直近の全スタンプの名前と ID の対応表を取得
-func (q *QStamps) RefreshBimap() error {
+func (q *QStamps) Refresh() error {
 	stamps, _, err := q.bot.API().StampAPI.GetStamps(context.Background()).Execute()
 	if err != nil {
 		return err
@@ -42,40 +46,38 @@ func (q *QStamps) RefreshBimap() error {
 }
 
 // 引数の名前をもつスタンプの現在の ID を取得
-func (q *QStamps) GetStampID(name string) *string {
-	stampID, exists := q.stampNameID[name]
-	if exists {
-		return &stampID
-	} else {
-		return nil
-	}
+func (q *QStamps) GetStampID(name string) (string, bool) {
+	stampID, ok := q.stampNameID[name]
+	return stampID, ok
 }
 
 // 引数の ID をもつスタンプの現在の名前を取得
-func (q *QStamps) GetStampName(id string) *string {
+func (q *QStamps) GetStampName(id string) (string, bool) {
 	stampName, exists := q.stampIDName[id]
-	if exists {
-		return &stampName
-	} else {
-		return nil
-	}
+	return stampName, exists
 }
 
-// メッセージに引数の名前のスタンプを順番につける
-func (q *QStamps) Stamp(messageID string, stampNames ...string) error {
+// メッセージに引数の名前のスタンプを順番につける。返り値は成功したスタンプの名前の配列
+func (q *QStamps) Stamp(messageID string, stampNames ...string) ([]string, error) {
+	var err error = nil
+	successfulStamps := []string{}
+
 	for _, name := range stampNames {
-		stampID, exists := q.stampNameID[name]
-		if !exists {
-			continue // 存在しないスタンプは無視
+		stampID, ok := q.stampNameID[name]
+		if !ok {
+			err = fmt.Errorf("スタンプ :%s: はキャッシュに存在しません", name)
+			break
 		}
 
-		_, err := q.bot.API().MessageAPI.AddMessageStamp(context.Background(), messageID, stampID).
+		_, err = q.bot.API().MessageAPI.AddMessageStamp(context.Background(), messageID, stampID).
 			PostMessageStampRequest(*traq.NewPostMessageStampRequestWithDefaults()).Execute()
 
 		if err != nil {
-			return err
+			break
 		}
+
+		successfulStamps = append(successfulStamps, name)
 	}
 
-	return nil
+	return successfulStamps, err
 }
