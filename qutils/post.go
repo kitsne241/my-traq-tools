@@ -8,7 +8,7 @@ import (
 )
 
 // メッセージの投稿だけをしたいときのためのショートカット
-func Post(bot *wsbot.Bot, text string, channelID string) error {
+func Post(bot *wsbot.Bot, channelID string, text string) error {
 	_, _, err := bot.API().MessageAPI.PostMessage(context.Background(), channelID).
 		PostMessageRequest(traq.PostMessageRequest{Content: text}).Execute()
 	return err
