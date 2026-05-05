@@ -3,6 +3,7 @@ package qchannels
 import (
 	"context"
 
+	"github.com/traPtitech/go-traq"
 	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
@@ -11,6 +12,7 @@ type QChannels struct {
 	idTree        map[string]string
 	channelPathID map[string]string
 	channelIDPath map[string]string
+	channelIDData map[string]traq.Channel
 }
 
 // 引数の Bot をもとにインスタンスを生成
@@ -31,12 +33,12 @@ func (q *QChannels) Refresh() error {
 	}
 
 	idTree := map[string]string{} // 子チャンネルの ID をキー、親チャンネルの ID を値にもつ
-	channelIDName := map[string]string{}
+	channelIDData := map[string]traq.Channel{}
 	channelPathID := map[string]string{}
 	channelIDPath := map[string]string{}
 
 	for _, channel := range channels.Public {
-		channelIDName[channel.Id] = channel.Name
+		channelIDData[channel.Id] = channel
 		parentID := channel.ParentId.Get()
 		if parentID != nil {
 			idTree[channel.Id] = *parentID
@@ -47,19 +49,20 @@ func (q *QChannels) Refresh() error {
 	for _, channel := range channels.Public {
 		currentID := channel.Id
 		exists := false
-		path := channelIDName[currentID]
+		path := channelIDData[currentID].Name
 		for {
 			currentID, exists = idTree[currentID]
 			if !exists {
 				break
 			}
-			path = channelIDName[currentID] + "/" + path
+			path = channelIDData[currentID].Name + "/" + path
 		}
 		channelPathID[path] = channel.Id
 		channelIDPath[channel.Id] = path
 	}
 
 	q.idTree = idTree
+	q.channelIDData = channelIDData
 	q.channelPathID = channelPathID
 	q.channelIDPath = channelIDPath
 
@@ -78,19 +81,17 @@ func (q *QChannels) GetChannelPath(id string) (string, bool) {
 	return channelPath, ok
 }
 
-// 引数の ID をもつチャンネルの親チャンネルの ID を取得
-func (q *QChannels) GetParent(channelID string) (string, bool) {
-	parentID, ok := q.idTree[channelID]
-	return parentID, ok
+// 引数の ID をもつチャンネルの現在のデータを取得
+func (q *QChannels) GetChannel(id string) (traq.Channel, bool) {
+	channel, ok := q.channelIDData[id]
+	return channel, ok
 }
 
-// 引数の ID をもつチャンネルの子チャンネルの ID の配列を取得
-func (q *QChannels) GetChildren(channelID string) []string {
-	children := []string{}
-	for childID, parentID := range q.idTree {
-		if parentID == channelID {
-			children = append(children, childID)
-		}
+// 引数のパスをもつチャンネルの現在のデータを取得
+func (q *QChannels) GetChannelByPath(path string) (traq.Channel, bool) {
+	channelID, ok := q.GetChannelID(path)
+	if !ok {
+		return traq.Channel{}, false
 	}
-	return children
+	return q.GetChannel(channelID)
 }

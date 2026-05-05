@@ -40,11 +40,9 @@ func main() {
 	bot, _ := wsbot.NewBot(&wsbot.Options{AccessToken: "ACCESS_TOKEN"})
 	qc, _ := qchannels.New(bot) // 内部で Refresh を実行
 
-	id, _ := qc.GetChannelID("times/24/kitsnegra")
-	fmt.Println("チャンネル #times/24/kitsnegra の UUID : ", id)
-
-	parent, _ := qc.GetParent(id)
-	fmt.Println("チャンネル #times/24 の UUID : ", parent)
+	channel, _ := qc.GetChannelByPath("times/24/kitsnegra")
+	json, _ := channel.MarshalJSON()
+	fmt.Println(string(json))
 
 	qc.Refresh() // 情報を更新
 }
