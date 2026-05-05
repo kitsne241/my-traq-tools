@@ -3,13 +3,14 @@ package qusers
 import (
 	"context"
 
+	"github.com/traPtitech/go-traq"
 	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 type QUsers struct {
 	bot        *wsbot.Bot
 	userNameID map[string]string
-	userIDName map[string]string
+	userIDData map[string]traq.User
 }
 
 // 引数の Bot をもとにインスタンスを生成
@@ -22,7 +23,7 @@ func New(bot *wsbot.Bot) (*QUsers, error) {
 	return q, nil
 }
 
-// traQ の直近の全ユーザーの Display ID と ID の対応表を取得
+// traQ の直近の全ユーザーの名前と ID の対応表を取得
 func (q *QUsers) Refresh() error {
 	users, _, err := q.bot.API().UserAPI.GetUsers(context.Background()).IncludeSuspended(true).Execute()
 	if err != nil {
@@ -30,27 +31,46 @@ func (q *QUsers) Refresh() error {
 	}
 
 	userNameID := map[string]string{}
-	userIDName := map[string]string{}
+	userIDData := map[string]traq.User{}
 
 	for _, user := range users {
 		userNameID[user.Name] = user.Id
-		userIDName[user.Id] = user.Name
+		userIDData[user.Id] = user
 	}
 
 	q.userNameID = userNameID
-	q.userIDName = userIDName
+	q.userIDData = userIDData
 
 	return nil
 }
 
-// 引数の Display ID をもつユーザーの ID を取得
+// 引数の名前をもつユーザーの ID を取得
 func (q *QUsers) GetUserID(name string) (string, bool) {
 	userID, ok := q.userNameID[name]
 	return userID, ok
 }
 
-// 引数の ID をもつユーザーの Display ID を取得
+// 引数の ID をもつユーザーの現在のデータを取得
+func (q *QUsers) GetUser(id string) (traq.User, bool) {
+	user, ok := q.userIDData[id]
+	return user, ok
+}
+
+// 引数の ID をもつユーザーの名前を取得
 func (q *QUsers) GetUserName(id string) (string, bool) {
-	userName, ok := q.userIDName[id]
-	return userName, ok
+	user, ok := q.GetUser(id)
+	if !ok {
+		return "", false
+	}
+	return user.Name, true
+}
+
+// 引数の名前を持つユーザーの現在のデータを取得
+
+func (q *QUsers) GetUserByName(name string) (traq.User, bool) {
+	userID, ok := q.GetUserID(name)
+	if !ok {
+		return traq.User{}, false
+	}
+	return q.GetUser(userID)
 }
