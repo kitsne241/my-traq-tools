@@ -15,6 +15,7 @@ go get github.com/kitsne241/my-traq-tools@latest
 - **qchannels**: チャンネルのパス と ID の相互変換、および親子関係の取得を行います。
 - **qstamps**: スタンプの名前と ID の相互変換、およびメッセージに対する連続したスタンプの付与をサポートします。
 - **qusers**: ユーザーの名前（`@` 以降の部分）と ID の相互変換を行います。
+- **qgroups**: ユーザーグループの名前（`@` 以降の部分）と ID の相互変換を行います。
 - **qutils**: そのほかいろいろとお役立ちな関数を用意する予定です。
 
 ## 注意
@@ -92,6 +93,40 @@ func main() {
 	fmt.Println("ユーザー @kitsne の UUID : ", id)
 
 	qu.Refresh() // 情報を更新
+}
+```
+
+### qgroups
+
+`qgroups` と `qusers` を組み合わせることで、特定のグループに所属しているメンバーの名前一覧などを簡単に取得できます。
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/kitsne241/my-traq-tools/qgroups"
+	"github.com/kitsne241/my-traq-tools/qusers"
+	wsbot "github.com/traPtitech/traq-ws-bot"
+)
+
+func main() {
+	bot, _ := wsbot.NewBot(&wsbot.Options{AccessToken: "ACCESS_TOKEN"})
+	qg, _ := qgroups.New(bot)
+	qu, _ := qusers.New(bot)
+
+	group, _ := qg.GetGroupByName("24B")
+
+	// 所属する各メンバーの ID から、ユーザー名を取得
+	fmt.Println("@24B のメンバー :")
+	for _, member := range group.Members {
+		userName, _ := qu.GetUserName(member.Id)
+		fmt.Printf("- @%s\n", userName)
+	}
+
+	// 定期的に情報を更新
+	qg.Refresh()
+	qu.Refresh()
 }
 ```
 
