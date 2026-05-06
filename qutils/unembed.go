@@ -7,8 +7,8 @@ import (
 
 type Embed struct {
 	EmbedContent
-	Start int // 埋め込み前のテキストにおける埋め込みの開始 index（rune じゃなくて string）
-	End   int // 埋め込み前のテキストにおける埋め込みの終了 index（rune じゃなくて string）
+	Start int // 埋め込み前のテキストにおける埋め込みの開始位置（単位 : Byte）
+	End   int // 埋め込み前のテキストにおける埋め込みの終了位置（単位 : Byte）
 }
 
 type EmbedContent struct {
