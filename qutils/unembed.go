@@ -7,8 +7,8 @@ import (
 
 type Embed struct {
 	EmbedContent
-	Start int // 埋め込み前のテキストにおける埋め込みの開始位置
-	End   int // 埋め込み前のテキストにおける埋め込みの終了位置
+	Start int // 埋め込み前のテキストにおける埋め込みの開始 index（rune じゃなくて string）
+	End   int // 埋め込み前のテキストにおける埋め込みの終了 index（rune じゃなくて string）
 }
 
 type EmbedContent struct {
@@ -19,27 +19,26 @@ type EmbedContent struct {
 
 // メッセージ本文を埋め込みのないもとの Markdown の形式に変換し、埋め込みの内容を返す
 func Unembed(text string) (string, []Embed) {
-	textRune := []rune(text)
 	inEmbed := false
 	embeds := []Embed{}
 	var data Embed
 
 	// !{ ... } の形式を最短一致で検出し、中身を JSON としてパース
-	for i := 0; i < len(textRune); i++ {
+	for i := 0; i < len(text); i++ {
 		if inEmbed {
-			if textRune[i] == '}' {
+			if text[i] == '}' {
 				inEmbed = false
 				data.End = i + 1
 
 				var content EmbedContent
-				err := json.Unmarshal([]byte(string(textRune[data.Start+1:i+1])), &content)
+				err := json.Unmarshal([]byte(text[data.Start+1:i+1]), &content)
 				if err == nil {
 					data.EmbedContent = content
 					embeds = append(embeds, data)
 				}
 			}
 		} else {
-			if (i < len(textRune)-1) && textRune[i] == '!' && textRune[i+1] == '{' {
+			if (i < len(text)-1) && text[i] == '!' && text[i+1] == '{' {
 				inEmbed = true
 				data = Embed{Start: i}
 			}
@@ -49,12 +48,11 @@ func Unembed(text string) (string, []Embed) {
 	// 得られた embed を後ろから順に置き換えて埋め込みを解消する
 	slices.Reverse(embeds)
 	for _, data := range embeds {
-		tempRune := append([]rune(data.Raw), textRune[data.End:]...)
-		textRune = append(textRune[:data.Start], tempRune...)
+		text = text[:data.Start] + data.Raw + text[data.End:]
 	}
 
 	slices.Reverse(embeds)
-	return string(textRune), embeds
+	return text, embeds
 }
 
 // 埋め込みは type, raw, id の 3 つのキーのみから構成される JSON 文字列 !{ ... } である
