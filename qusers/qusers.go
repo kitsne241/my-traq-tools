@@ -2,15 +2,17 @@ package qusers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/traPtitech/go-traq"
 	wsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 type QUsers struct {
-	bot        *wsbot.Bot
-	userNameID map[string]string
-	userIDData map[string]traq.User
+	bot             *wsbot.Bot
+	userLowerNameID map[string]string
+	userNameID      map[string]string
+	userIDData      map[string]traq.User
 }
 
 // 引数の Bot をもとにインスタンスを生成
@@ -30,23 +32,32 @@ func (q *QUsers) Refresh() error {
 		return err
 	}
 
+	userLowerNameID := map[string]string{}
 	userNameID := map[string]string{}
 	userIDData := map[string]traq.User{}
 
 	for _, user := range users {
+		userLowerNameID[strings.ToLower(user.Name)] = user.Id
 		userNameID[user.Name] = user.Id
 		userIDData[user.Id] = user
 	}
 
+	q.userLowerNameID = userLowerNameID
 	q.userNameID = userNameID
 	q.userIDData = userIDData
 
 	return nil
 }
 
-// 引数の名前をもつユーザーの ID を取得
+// 引数の名前（完全一致）をもつユーザーの ID を取得
 func (q *QUsers) GetUserID(name string) (string, bool) {
 	userID, ok := q.userNameID[name]
+	return userID, ok
+}
+
+// 引数の名前（Case を無視）をもつユーザーの ID を取得
+func (q *QUsers) GetUserIDCaseInsentive(name string) (string, bool) {
+	userID, ok := q.userLowerNameID[strings.ToLower(name)]
 	return userID, ok
 }
 
@@ -65,10 +76,18 @@ func (q *QUsers) GetUserName(id string) (string, bool) {
 	return user.Name, true
 }
 
-// 引数の名前を持つユーザーの現在のデータを取得
-
+// 引数の名前（完全一致）を持つユーザーの現在のデータを取得
 func (q *QUsers) GetUserByName(name string) (traq.User, bool) {
 	userID, ok := q.GetUserID(name)
+	if !ok {
+		return traq.User{}, false
+	}
+	return q.GetUser(userID)
+}
+
+// 引数の名前（Case を無視）を持つユーザーの現在のデータを取得
+func (q *QUsers) GetUserByCaseInsentiveName(name string) (traq.User, bool) {
+	userID, ok := q.GetUserIDCaseInsentive(name)
 	if !ok {
 		return traq.User{}, false
 	}
