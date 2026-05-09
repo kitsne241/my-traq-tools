@@ -49,18 +49,6 @@ func (q *QUsers) Refresh() error {
 	return nil
 }
 
-// 引数の名前（完全一致）をもつユーザーの ID を取得
-func (q *QUsers) GetUserID(name string) (string, bool) {
-	userID, ok := q.userNameID[name]
-	return userID, ok
-}
-
-// 引数の名前（Case を無視）をもつユーザーの ID を取得
-func (q *QUsers) GetUserIDCaseInsentive(name string) (string, bool) {
-	userID, ok := q.userLowerNameID[strings.ToLower(name)]
-	return userID, ok
-}
-
 // 引数の ID をもつユーザーの現在のデータを取得
 func (q *QUsers) GetUser(id string) (traq.User, bool) {
 	user, ok := q.userIDData[id]
@@ -76,9 +64,21 @@ func (q *QUsers) GetUserName(id string) (string, bool) {
 	return user.Name, true
 }
 
+// 引数の名前（完全一致）をもつユーザーの ID を取得
+func (q *QUsers) GetUserIDByName(name string) (string, bool) {
+	userID, ok := q.userNameID[name]
+	return userID, ok
+}
+
+// 引数の名前（Case を無視）をもつユーザーの ID を取得
+func (q *QUsers) GetUserIDByCaseInsentiveName(name string) (string, bool) {
+	userID, ok := q.userLowerNameID[strings.ToLower(name)]
+	return userID, ok
+}
+
 // 引数の名前（完全一致）を持つユーザーの現在のデータを取得
 func (q *QUsers) GetUserByName(name string) (traq.User, bool) {
-	userID, ok := q.GetUserID(name)
+	userID, ok := q.GetUserIDByName(name)
 	if !ok {
 		return traq.User{}, false
 	}
@@ -87,7 +87,7 @@ func (q *QUsers) GetUserByName(name string) (traq.User, bool) {
 
 // 引数の名前（Case を無視）を持つユーザーの現在のデータを取得
 func (q *QUsers) GetUserByCaseInsentiveName(name string) (traq.User, bool) {
-	userID, ok := q.GetUserIDCaseInsentive(name)
+	userID, ok := q.GetUserIDByCaseInsentiveName(name)
 	if !ok {
 		return traq.User{}, false
 	}

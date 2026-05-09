@@ -44,12 +44,6 @@ func (q *QGroups) Refresh() error {
 	return nil
 }
 
-// 引数の名前をもつグループの ID を取得
-func (q *QGroups) GetGroupID(name string) (string, bool) {
-	groupID, ok := q.groupNameID[name]
-	return groupID, ok
-}
-
 // 引数の ID をもつグループの現在のデータを取得
 func (q *QGroups) GetGroup(id string) (traq.UserGroup, bool) {
 	group, ok := q.groupIDData[id]
@@ -65,9 +59,15 @@ func (q *QGroups) GetGroupName(id string) (string, bool) {
 	return group.Name, true
 }
 
+// 引数の名前をもつグループの ID を取得
+func (q *QGroups) GetGroupIDByName(name string) (string, bool) {
+	groupID, ok := q.groupNameID[name]
+	return groupID, ok
+}
+
 // 引数の名前を持つグループの現在のデータを取得
 func (q *QGroups) GetGroupByName(name string) (traq.UserGroup, bool) {
-	groupID, ok := q.GetGroupID(name)
+	groupID, ok := q.GetGroupIDByName(name)
 	if !ok {
 		return traq.UserGroup{}, false
 	}

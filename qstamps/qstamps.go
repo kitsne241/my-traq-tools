@@ -62,12 +62,6 @@ func (q *QStamps) Refresh() error {
 	return nil
 }
 
-// 引数の名前をもつスタンプの現在の ID を取得
-func (q *QStamps) GetStampID(name string) (string, bool) {
-	stampID, ok := q.stampNameID[name]
-	return stampID, ok
-}
-
 // 引数の ID をもつスタンプの現在のデータを取得
 func (q *QStamps) GetStamp(id string) (traq.Stamp, bool) {
 	stamp, ok := q.stampIDData[id]
@@ -83,9 +77,15 @@ func (q *QStamps) GetStampName(id string) (string, bool) {
 	return stamp.Name, true
 }
 
+// 引数の名前をもつスタンプの現在の ID を取得
+func (q *QStamps) GetStampIDByName(name string) (string, bool) {
+	stampID, ok := q.stampNameID[name]
+	return stampID, ok
+}
+
 // 引数の名前をもつスタンプの現在のデータを取得
 func (q *QStamps) GetStampByName(name string) (traq.Stamp, bool) {
-	stampID, ok := q.GetStampID(name)
+	stampID, ok := q.GetStampIDByName(name)
 	if !ok {
 		return traq.Stamp{}, false
 	}
@@ -98,7 +98,7 @@ func (q *QStamps) Stamp(messageID string, stampNames ...string) ([]string, error
 	successfulStamps := []string{}
 
 	for _, name := range stampNames {
-		stampID, ok := q.GetStampID(name)
+		stampID, ok := q.GetStampIDByName(name)
 		if !ok {
 			err = fmt.Errorf("スタンプ :%s: はキャッシュに存在しません", name)
 			break

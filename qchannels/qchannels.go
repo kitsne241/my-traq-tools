@@ -69,10 +69,10 @@ func (q *QChannels) Refresh() error {
 	return nil
 }
 
-// 引数のパスをもつチャンネルの現在の ID を取得
-func (q *QChannels) GetChannelID(path string) (string, bool) {
-	channelID, ok := q.channelPathID[path]
-	return channelID, ok
+// 引数の ID をもつチャンネルの現在のデータを取得
+func (q *QChannels) GetChannel(id string) (traq.Channel, bool) {
+	channel, ok := q.channelIDData[id]
+	return channel, ok
 }
 
 // 引数の ID をもつチャンネルの現在のパスを取得
@@ -81,15 +81,15 @@ func (q *QChannels) GetChannelPath(id string) (string, bool) {
 	return channelPath, ok
 }
 
-// 引数の ID をもつチャンネルの現在のデータを取得
-func (q *QChannels) GetChannel(id string) (traq.Channel, bool) {
-	channel, ok := q.channelIDData[id]
-	return channel, ok
+// 引数のパスをもつチャンネルの現在の ID を取得
+func (q *QChannels) GetChannelIDByPath(path string) (string, bool) {
+	channelID, ok := q.channelPathID[path]
+	return channelID, ok
 }
 
 // 引数のパスをもつチャンネルの現在のデータを取得
 func (q *QChannels) GetChannelByPath(path string) (traq.Channel, bool) {
-	channelID, ok := q.GetChannelID(path)
+	channelID, ok := q.GetChannelIDByPath(path)
 	if !ok {
 		return traq.Channel{}, false
 	}

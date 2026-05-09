@@ -3,7 +3,6 @@ module github.com/kitsne241/my-traq-tools
 go 1.25.1
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/traPtitech/go-traq v0.0.0-20260305130843-fd44d800c38e
 	github.com/traPtitech/traq-ws-bot v1.2.1
 )
